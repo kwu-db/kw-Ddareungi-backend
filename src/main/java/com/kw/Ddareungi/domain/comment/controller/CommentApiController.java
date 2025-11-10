@@ -29,6 +29,7 @@ public class CommentApiController {
         return ApiResponseDto.onSuccess(commentCommandService.writeCommentAtBoard(boardId, username, requestComment));
     }
 
+    // pagination 고려
     @Operation(summary = "댓글 목록 조회")
     @GetMapping("/boards/{boardId}")
     public ApiResponseDto<ResponseCommentList> getCommentList(@PathVariable Long boardId) {
