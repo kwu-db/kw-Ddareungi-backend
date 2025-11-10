@@ -14,6 +14,7 @@ import lombok.experimental.SuperBuilder;
 public class Report {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(unique = true, nullable = false, name = "report_id")
     private Integer id;
 
     private String bikeNumber;
