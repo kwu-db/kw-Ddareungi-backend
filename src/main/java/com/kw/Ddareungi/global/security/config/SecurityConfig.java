@@ -1,0 +1,148 @@
+package com.kw.Ddareungi.global.security.config;
+
+
+import com.kw.Ddareungi.global.security.exception.JwtAccessDeniedHandler;
+import com.kw.Ddareungi.global.security.exception.JwtAuthenticationEntryPoint;
+import com.kw.Ddareungi.global.security.filter.JwtAuthenticationFilter;
+import com.kw.Ddareungi.global.security.filter.JwtExceptionFilter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+
+@RequiredArgsConstructor
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtExceptionFilter jwtExceptionFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+        configureCorsAndSecurity(httpSecurity);
+        configureAuth(httpSecurity);
+//        configureOAuth2(httpSecurity);
+        configureExceptionHandling(httpSecurity);
+        addFilter(httpSecurity);
+
+        return httpSecurity.build();
+    }
+
+    private static void configureCorsAndSecurity(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .headers(
+                        httpSecurityHeadersConfigurer ->
+                                httpSecurityHeadersConfigurer.frameOptions(
+                                        HeadersConfigurer.FrameOptionsConfig::disable
+                                )
+                )
+                // stateless한 rest api 이므로 csrf 공격 옵션 비활성화
+                .csrf(AbstractHttpConfigurer::disable)
+                //.formLogin(Customizer.withDefaults())
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(HttpBasicConfigurer::disable)
+                .cors(Customizer.withDefaults())
+                .sessionManagement(configurer -> configurer
+                        .sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                );
+    }
+
+    private void configureAuth(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .authorizeHttpRequests(Customizer.withDefaults())
+                .authorizeHttpRequests(authorizeRequest -> {
+                    authorizeRequest
+                            .requestMatchers("/ws/**", "/subscribe/**", "/publish/**").permitAll()
+                            .requestMatchers("/", "/.well-known/**", "/css/**", "/*.ico", "/error", "/images/**").permitAll()
+                            .requestMatchers("/api/login", "/api/signup", "/api/health").permitAll()
+                            .requestMatchers(HttpMethod.GET, permitAllGetPaths()).permitAll() // [GET] 인증 없이 접근 가능한 공개 API 경로
+                            .requestMatchers(HttpMethod.POST, permitAllPostPaths()).permitAll() // [POST] 인증 없이 접근 가능한 공개 API 경로
+                            .requestMatchers(HttpMethod.DELETE, permitAllDeletePaths()).permitAll()
+                            .requestMatchers(swaggerPermitAllPaths()).permitAll()
+                            .requestMatchers(authPermitAllPaths()).permitAll()
+//                            .requestMatchers(permitAllRequestV2()).permitAll()
+                            .anyRequest().authenticated();  // 그 외 모든 요청은 인증 필요
+                });
+    }
+
+    //[GET] 인증 없이 접근 허용할 경로 목록
+    private String[] permitAllGetPaths() {
+        return new String[]{
+                "/api/v1/examples/**",
+                "/api/v1/test/**",
+                "/api/v1/test/health-check",
+                "/api/v1/examples/user",
+                "/api/v1/examples/global",
+                "/api/v1/tokens/**",
+                "/api/v1/term",
+                "/actuator/**"
+        };
+    }
+
+    //[POST] 인증 없이 접근 허용할 경로 목록
+    private String[] permitAllPostPaths() {
+        return new String[]{
+                "/api/v1/tokens/**",
+                "/api/v1/users",
+                "/api/v1/experts",
+                "/api/v1/images",
+                "/api/v1/modification-request",
+                "/api/v1/dummy/**"
+        };
+    }
+    //[DELETE] 인증 없이 접근 허용할 경로 목록
+    private String[] permitAllDeletePaths() {
+        return new String[]{
+                "/api/v1/experts/{expertId}/by-admin",
+        };
+    }
+
+
+    private void addFilter(HttpSecurity httpSecurity) {
+        httpSecurity
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class);
+    }
+
+    private void configureExceptionHandling(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .exceptionHandling(httpSecurityExceptionHandlingConfigurer -> httpSecurityExceptionHandlingConfigurer
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler(jwtAccessDeniedHandler));        // 403
+    }
+
+    private String[] swaggerPermitAllPaths() {
+        return new String[]{
+                "/swagger-ui/**",
+                "/swagger-ui",
+                "/swagger-ui.html",
+                "/swagger/**",
+                "/swagger-resources/**",
+                "/v3/api-docs/**",
+                "/profile"
+        };
+    }
+
+    private String[] authPermitAllPaths() {
+        return new String[]{
+                "/oauth2/**",
+                "/login/**",
+                "/auth/**"
+        };
+    }
+}
