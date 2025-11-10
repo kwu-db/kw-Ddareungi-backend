@@ -1,6 +1,6 @@
 package com.kw.Ddareungi.common.exception;
 
-import com.kw.Ddareungi.common.annotation.ExplainError;
+import com.kw.Ddareungi.global.annotation.ExplainError;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

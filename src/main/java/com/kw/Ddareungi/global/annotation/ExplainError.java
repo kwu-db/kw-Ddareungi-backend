@@ -1,4 +1,4 @@
-package com.kw.Ddareungi.common.annotation;
+package com.kw.Ddareungi.global.annotation;
 
 import org.springframework.stereotype.Component;
 
