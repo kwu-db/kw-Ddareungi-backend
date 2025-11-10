@@ -19,3 +19,8 @@ spring:
           batch_versioned_data: true
         order_inserts: true
         order_updates: true
+  ### redis ###
+  data:
+    redis:
+      host: localhost
+      port: 6379
