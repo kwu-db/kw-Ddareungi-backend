@@ -24,8 +24,8 @@ public class Station extends BaseTimeEntity {
     private Long id;
 
     private String stationName;
-    private BigDecimal latitude;
-    private BigDecimal longitude;
+    private Double latitude;
+    private Double longitude;
     private String address;
     private int capacity;
     private LocalDate installationDate;
