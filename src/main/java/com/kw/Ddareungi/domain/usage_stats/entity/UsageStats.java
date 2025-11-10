@@ -1,4 +1,4 @@
-package com.kw.Ddareungi.domain.useage_stats.entity;
+package com.kw.Ddareungi.domain.usage_stats.entity;
 
 import com.kw.Ddareungi.domain.model.entity.BaseTimeEntity;
 import com.kw.Ddareungi.domain.rental.entity.Rental;
