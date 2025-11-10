@@ -1,4 +1,4 @@
-package com.kw.Ddareungi.common.config;
+package com.kw.Ddareungi.global.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
