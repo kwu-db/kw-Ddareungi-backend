@@ -2,8 +2,8 @@ package com.kw.Ddareungi.api.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.kw.Ddareungi.common.exception.BaseCode;
-import com.kw.Ddareungi.common.exception.SuccessStatus;
+import com.kw.Ddareungi.global.exception.BaseCode;
+import com.kw.Ddareungi.global.exception.SuccessStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

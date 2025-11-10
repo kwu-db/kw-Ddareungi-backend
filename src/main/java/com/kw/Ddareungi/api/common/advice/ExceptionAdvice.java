@@ -2,9 +2,9 @@ package com.kw.Ddareungi.api.common.advice;
 
 
 import com.kw.Ddareungi.api.common.dto.ApiResponseDto;
-import com.kw.Ddareungi.common.exception.ErrorStatus;
-import com.kw.Ddareungi.common.exception.GeneralException;
-import com.kw.Ddareungi.common.exception.Reason;
+import com.kw.Ddareungi.global.exception.ErrorStatus;
+import com.kw.Ddareungi.global.exception.GeneralException;
+import com.kw.Ddareungi.global.exception.Reason;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

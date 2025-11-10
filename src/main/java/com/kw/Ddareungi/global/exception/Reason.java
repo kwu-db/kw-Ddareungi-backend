@@ -1,4 +1,4 @@
-package com.kw.Ddareungi.common.exception;
+package com.kw.Ddareungi.global.exception;
 
 import lombok.Builder;
 import lombok.Getter;
