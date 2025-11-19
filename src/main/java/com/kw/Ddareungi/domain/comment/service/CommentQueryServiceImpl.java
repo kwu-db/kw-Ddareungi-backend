@@ -14,6 +14,13 @@ public class CommentQueryServiceImpl implements CommentQueryService {
     private final CommentRepository commentRepository;
 
 
+    /**
+     * SQL 입력
+     * 1. boardId를 통해 댓글 목록 조회
+     * 2. return에 맞게 매핑
+     * @param boardId
+     * @return ResponseCommentList
+     */
     @Override
     public ResponseCommentList getCommentList(Long boardId) {
         //1. query sql
