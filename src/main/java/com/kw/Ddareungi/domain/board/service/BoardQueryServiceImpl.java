@@ -16,6 +16,13 @@ public class BoardQueryServiceImpl implements BoardQueryService {
 
     private final BoardRepository boardRepository;
 
+    /**
+     * SQL 입력
+     * 1. boardId로 가져오기(where)
+     * 2. return 에 맞게 매핑
+     * @param boardId
+     * @return BoardResponseDto.BoardInfo
+     */
     @Override
     public BoardResponseDto.BoardInfo getBoard(Long boardId) {
         Board board = boardRepository.findById(boardId)
@@ -24,6 +31,15 @@ public class BoardQueryServiceImpl implements BoardQueryService {
         return BoardResponseDto.BoardInfo.from(board);
     }
 
+    /**
+     * SQL문 작성
+     * 1. board type에 맞게 pagination board 목록 가져오기
+     * 2. Pageable에 맞게 설정
+     * 3. return에 맞게 매핑
+     * @param boardType
+     * @param pageable
+     * @return Page<BoardResponseDto.BoardListInfo>
+     */
     @Override
     public Page<BoardResponseDto.BoardListInfo> getBoardsByType(Board.BoardType boardType, Pageable pageable) {
         return boardRepository.findByBoardType(boardType, pageable)
@@ -36,6 +52,15 @@ public class BoardQueryServiceImpl implements BoardQueryService {
                 .map(BoardResponseDto.BoardListInfo::from);
     }
 
+    /**
+     * SQL문 작성
+     * 1. board type + keyword => pagination board 목록
+     * 2. Pageable에 맞게 설정
+     * 3. return에 맞게 매핑
+     * @param keyword
+     * @param pageable
+     * @return Page<BoardResponseDto.BoardListInfo>
+     */
     @Override
     public Page<BoardResponseDto.BoardListInfo> searchBoards(String keyword, Pageable pageable) {
         return boardRepository.findByTitleOrContentContaining(keyword, pageable)
