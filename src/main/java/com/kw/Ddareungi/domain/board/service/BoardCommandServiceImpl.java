@@ -19,8 +19,8 @@ public class BoardCommandServiceImpl implements BoardCommandService {
     private final UserRepository userRepository;
 
     @Override
-    public BoardResponseDto.BoardInfo createBoard(Long userId, BoardRequestDto.CreateBoard request) {
-        User user = userRepository.findById(userId)
+    public BoardResponseDto.BoardInfo createBoard(String username, BoardRequestDto.CreateBoard request) {
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
         Board board = Board.builder()
@@ -35,12 +35,12 @@ public class BoardCommandServiceImpl implements BoardCommandService {
     }
 
     @Override
-    public BoardResponseDto.BoardInfo updateBoard(Long boardId, Long userId, BoardRequestDto.UpdateBoard request) {
+    public BoardResponseDto.BoardInfo updateBoard(Long boardId, String username, BoardRequestDto.UpdateBoard request) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
 
         // 작성자 확인
-        if (!board.getUser().getId().equals(userId)) {
+        if (!board.getUser().getUsername().equals(username)) {
             throw new RuntimeException("게시글을 수정할 권한이 없습니다.");
         }
 
@@ -52,12 +52,12 @@ public class BoardCommandServiceImpl implements BoardCommandService {
     }
 
     @Override
-    public void deleteBoard(Long boardId, Long userId) {
+    public void deleteBoard(Long boardId, String username) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
 
         // 작성자 확인
-        if (!board.getUser().getId().equals(userId)) {
+        if (!board.getUser().getUsername().equals(username)) {
             throw new RuntimeException("게시글을 삭제할 권한이 없습니다.");
         }
 

@@ -1,4 +1,4 @@
-package com.kw.Ddareungi.api.board.controller;
+package com.kw.Ddareungi.domain.board.controller;
 
 import com.kw.Ddareungi.api.common.dto.ApiResponseDto;
 import com.kw.Ddareungi.domain.board.dto.BoardRequestDto;
@@ -17,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "게시글", description = "게시글 관련 API")
@@ -31,10 +32,10 @@ public class BoardController {
     @Operation(summary = "게시글 작성", description = "새로운 게시글을 작성합니다.")
     @PostMapping
     public ResponseEntity<ApiResponseDto<BoardResponseDto.BoardInfo>> createBoard(
-            @Parameter(description = "사용자 ID", required = true) @RequestParam Long userId,
+            @AuthenticationPrincipal String username,
             @Valid @RequestBody BoardRequestDto.CreateBoard request) {
         
-        BoardResponseDto.BoardInfo response = boardCommandService.createBoard(userId, request);
+        BoardResponseDto.BoardInfo response = boardCommandService.createBoard(username, request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponseDto.onSuccess(response));
     }
@@ -43,10 +44,10 @@ public class BoardController {
     @PatchMapping("/{boardId}")
     public ResponseEntity<ApiResponseDto<BoardResponseDto.BoardInfo>> updateBoard(
             @Parameter(description = "게시글 ID", required = true) @PathVariable Long boardId,
-            @Parameter(description = "사용자 ID", required = true) @RequestParam Long userId,
+            @AuthenticationPrincipal String username,
             @Valid @RequestBody BoardRequestDto.UpdateBoard request) {
         
-        BoardResponseDto.BoardInfo response = boardCommandService.updateBoard(boardId, userId, request);
+        BoardResponseDto.BoardInfo response = boardCommandService.updateBoard(boardId, username, request);
         return ResponseEntity.ok(ApiResponseDto.onSuccess(response));
     }
 
@@ -54,9 +55,9 @@ public class BoardController {
     @DeleteMapping("/{boardId}")
     public ResponseEntity<ApiResponseDto<Void>> deleteBoard(
             @Parameter(description = "게시글 ID", required = true) @PathVariable Long boardId,
-            @Parameter(description = "사용자 ID", required = true) @RequestParam Long userId) {
+            @AuthenticationPrincipal String username) {
         
-        boardCommandService.deleteBoard(boardId, userId);
+        boardCommandService.deleteBoard(boardId, username);
         return ResponseEntity.ok(ApiResponseDto.onSuccess(null));
     }
 

@@ -34,7 +34,7 @@ public class Board extends BaseTimeEntity {
     private String content;
 
     public enum BoardType {
-        QNA, NOTICE, REPORT
+        QNA, NOTICE
     }
 
     // 비즈니스 메서드들
