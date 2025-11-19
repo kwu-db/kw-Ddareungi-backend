@@ -1,4 +1,4 @@
-package com.kw.Ddareungi.domain.rental;
+package com.kw.Ddareungi.domain.rental.dto;
 
 import lombok.Builder;
 import lombok.Data;

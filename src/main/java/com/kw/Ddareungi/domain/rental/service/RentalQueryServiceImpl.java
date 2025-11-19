@@ -1,6 +1,6 @@
 package com.kw.Ddareungi.domain.rental.service;
 
-import com.kw.Ddareungi.domain.rental.ResponseRentalList;
+import com.kw.Ddareungi.domain.rental.dto.ResponseRentalList;
 import com.kw.Ddareungi.domain.rental.repository.RentalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
