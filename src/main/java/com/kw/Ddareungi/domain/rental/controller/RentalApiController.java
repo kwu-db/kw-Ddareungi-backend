@@ -1,9 +1,7 @@
 package com.kw.Ddareungi.domain.rental.controller;
 
 import com.kw.Ddareungi.api.common.dto.ApiResponseDto;
-import com.kw.Ddareungi.domain.pass.service.PassQueryService;
-import com.kw.Ddareungi.domain.rental.ResponseRentalList;
-import com.kw.Ddareungi.domain.rental.entity.Rental;
+import com.kw.Ddareungi.domain.rental.dto.ResponseRentalList;
 import com.kw.Ddareungi.domain.rental.service.RentalCommandService;
 import com.kw.Ddareungi.domain.rental.service.RentalQueryService;
 import io.swagger.v3.oas.annotations.Operation;

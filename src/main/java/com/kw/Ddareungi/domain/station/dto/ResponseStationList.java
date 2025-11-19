@@ -9,5 +9,6 @@ import java.util.List;
 @Data
 @Builder
 public class ResponseStationList {
+    @Builder.Default
     private List<ResponseStation> stationList = new ArrayList<>();
 }
