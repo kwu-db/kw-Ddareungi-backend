@@ -18,8 +18,18 @@ public class BoardCommandServiceImpl implements BoardCommandService {
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
 
+    /**
+     * SQL 작성
+     * 1. username Exist 확인
+     * 2. 아래 builder와 같이 insert
+     * 3. return Long (현재 리턴값 변경 필요)
+     * @param username
+     * @param request
+     * @return BoardId
+     */
     @Override
     public BoardResponseDto.BoardInfo createBoard(String username, BoardRequestDto.CreateBoard request) {
+
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
@@ -34,6 +44,17 @@ public class BoardCommandServiceImpl implements BoardCommandService {
         return BoardResponseDto.BoardInfo.from(savedBoard);
     }
 
+    /**
+     * SQL 작성
+     * 1. boardId를 통해 변경할 board 설정
+     * 2. username으로 validation
+     * 3. title, content 수정
+     * 4. return Long (현재 리턴값 변경 필요)
+     * @param boardId
+     * @param username
+     * @param request
+     * @return
+     */
     @Override
     public BoardResponseDto.BoardInfo updateBoard(Long boardId, String username, BoardRequestDto.UpdateBoard request) {
         Board board = boardRepository.findById(boardId)
@@ -51,6 +72,14 @@ public class BoardCommandServiceImpl implements BoardCommandService {
         return BoardResponseDto.BoardInfo.from(updatedBoard);
     }
 
+    /**
+     * SQL 작성
+     * 1. boardId로 삭제 board 설정
+     * 2. username으로 validation
+     * 3. 삭제
+     * @param boardId
+     * @param username
+     */
     @Override
     public void deleteBoard(Long boardId, String username) {
         Board board = boardRepository.findById(boardId)
