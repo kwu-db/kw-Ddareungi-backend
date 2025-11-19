@@ -26,7 +26,7 @@ public class StationApiController {
     @PostMapping
     public ApiResponseDto<Long> registerStation(@RequestBody RequestRegisterStation requestRegisterStation,
                                                 @AuthenticationPrincipal String username) {
-        return ApiResponseDto.onSuccess(stationCommandService.registerStation(requestRegisterStation));
+        return ApiResponseDto.onSuccess(stationCommandService.registerStation(username, requestRegisterStation));
     }
 
     @Operation(summary = "대여소 목록 조회하기")
@@ -37,6 +37,6 @@ public class StationApiController {
     @Operation(summary = "대여소 상세 조회하기")
     @GetMapping("/{stationId}")
     public ApiResponseDto<ResponseStationSpecific> getStationById(@PathVariable Long stationId) {
-        return ApiResponseDto.onSuccess(stationCommandService.getStationSpecific(stationId));
+        return ApiResponseDto.onSuccess(stationQueryService.getStationSpecific(stationId));
     }
 }

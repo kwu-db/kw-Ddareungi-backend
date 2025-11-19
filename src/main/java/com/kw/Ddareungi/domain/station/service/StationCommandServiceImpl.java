@@ -12,13 +12,20 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class StationCommandServiceImpl implements StationCommandService {
     private final StationRepository stationRepository;
+
+    /**
+     * SQL 입력
+     * 1. username을 생성자로 입력
+     * 2. argument에 맞게 입력
+     * 3. Station 생성
+     * @param requestRegisterStation
+     * @return
+     */
     @Override
-    public Long registerStation(RequestRegisterStation requestRegisterStation) {
+    public Long registerStation(String username, RequestRegisterStation requestRegisterStation) {
         return 0L;
     }
 
-    @Override
-    public ResponseStationSpecific getStationSpecific(Long stationId) {
-        return null;
-    }
+
+
 }
