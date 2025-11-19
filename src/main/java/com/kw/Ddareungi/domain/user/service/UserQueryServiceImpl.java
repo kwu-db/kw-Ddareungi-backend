@@ -1,6 +1,5 @@
 package com.kw.Ddareungi.domain.user.service;
 
-
 import com.kw.Ddareungi.domain.user.entity.User;
 import com.kw.Ddareungi.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,30 +13,15 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     private final UserRepository userRepository;
 
-    /**
-     * SQL 입력
-     * 1. loginId에 부합하는 User 찾기
-     * 2. return USER
-     * @param loginId
-     * @return
-     */
     @Override
     public User getByLoginId(String loginId) {
-        //user 로그인 sql
-        return User.builder().build();
+        return userRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new IllegalArgumentException("로그인 정보와 일치하는 사용자가 없습니다."));
     }
 
-    /**
-     * SQL 입력
-     * 1. username을 통해 USer 찾기
-     * 2. return User
-     * @param username
-     * @return
-     */
     @Override
     public User getUserByUsername(String username) {
-
-        //username으로 select sql
-        return null;
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 }

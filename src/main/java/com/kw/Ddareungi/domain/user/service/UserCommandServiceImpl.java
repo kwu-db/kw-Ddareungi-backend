@@ -2,10 +2,12 @@ package com.kw.Ddareungi.domain.user.service;
 
 import com.kw.Ddareungi.domain.user.entity.User;
 import com.kw.Ddareungi.domain.user.repository.UserRepository;
-import io.swagger.v3.oas.annotations.servers.Server;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -13,22 +15,19 @@ import org.springframework.stereotype.Service;
 public class UserCommandServiceImpl implements UserCommandService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    /**
-     * SQL 입력
-     * 1. argument에 맞게 USER 생성
-     * @param name
-     * @param email
-     * @param password
-     * @return
-     */
     @Override
     public Long createUser(String name, String email, String password) {
+        LocalDateTime now = LocalDateTime.now();
         User user = User.builder()
+                .username(email) // 임시로 이메일을 username으로 사용
                 .name(name)
                 .email(email)
-                .password(password)
+                .password(passwordEncoder.encode(password))
+                .createdDate(now)
+                .lastModifiedDate(now)
                 .build();
-        return userRepository.save(user).getId();
+        return userRepository.save(user);
     }
 }

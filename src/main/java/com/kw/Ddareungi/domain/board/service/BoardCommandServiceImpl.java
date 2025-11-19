@@ -3,93 +3,121 @@ package com.kw.Ddareungi.domain.board.service;
 import com.kw.Ddareungi.domain.board.dto.BoardRequestDto;
 import com.kw.Ddareungi.domain.board.dto.BoardResponseDto;
 import com.kw.Ddareungi.domain.board.entity.Board;
-import com.kw.Ddareungi.domain.board.repository.BoardRepository;
 import com.kw.Ddareungi.domain.user.entity.User;
 import com.kw.Ddareungi.domain.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class BoardCommandServiceImpl implements BoardCommandService {
 
-    private final BoardRepository boardRepository;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
     private final UserRepository userRepository;
 
-    /**
-     * SQL 작성
-     * 1. username Exist 확인
-     * 2. 아래 builder와 같이 insert
-     * 3. return Long (현재 리턴값 변경 필요)
-     * @param username
-     * @param request
-     * @return BoardId
-     */
     @Override
     public BoardResponseDto.BoardInfo createBoard(String username, BoardRequestDto.CreateBoard request) {
-
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        Board board = Board.builder()
-                .user(user)
-                .boardType(request.getBoardType())
-                .title(request.getTitle())
-                .content(request.getContent())
-                .build();
+        String sql = """
+                INSERT INTO board (user_id, board_type, title, content, created_date, last_modified_date)
+                VALUES (:userId, :boardType, :title, :content, :createdDate, :lastModifiedDate)
+                """;
 
-        Board savedBoard = boardRepository.save(board);
-        return BoardResponseDto.BoardInfo.from(savedBoard);
+        LocalDateTime now = LocalDateTime.now();
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("userId", user.getId())
+                .addValue("boardType", request.getBoardType().name())
+                .addValue("title", request.getTitle())
+                .addValue("content", request.getContent())
+                .addValue("createdDate", now)
+                .addValue("lastModifiedDate", now);
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(sql, params, keyHolder, new String[]{"board_id"});
+        Long boardId = Optional.ofNullable(keyHolder.getKey())
+                .map(Number::longValue)
+                .orElseThrow(() -> new IllegalStateException("게시글 저장 중 문제가 발생했습니다."));
+
+        return fetchBoardInfo(boardId);
     }
 
-    /**
-     * SQL 작성
-     * 1. boardId를 통해 변경할 board 설정
-     * 2. username으로 validation
-     * 3. title, content 수정
-     * 4. return Long (현재 리턴값 변경 필요)
-     * @param boardId
-     * @param username
-     * @param request
-     * @return
-     */
     @Override
     public BoardResponseDto.BoardInfo updateBoard(Long boardId, String username, BoardRequestDto.UpdateBoard request) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        // 작성자 확인
-        if (!board.getUser().getUsername().equals(username)) {
-            throw new RuntimeException("게시글을 수정할 권한이 없습니다.");
+        Long writerId = fetchBoardOwnerId(boardId);
+        if (!writerId.equals(user.getId())) {
+            throw new IllegalArgumentException("게시글을 수정할 권한이 없습니다.");
         }
 
-        // 수정할 필드가 있는 경우에만 업데이트
-        board.updateBoard(request.getTitle(), request.getContent());
+        List<String> sets = new ArrayList<>();
+        MapSqlParameterSource params = new MapSqlParameterSource().addValue("boardId", boardId);
 
-        Board updatedBoard = boardRepository.save(board);
-        return BoardResponseDto.BoardInfo.from(updatedBoard);
+        if (StringUtils.hasText(request.getTitle())) {
+            sets.add("title = :title");
+            params.addValue("title", request.getTitle());
+        }
+        if (StringUtils.hasText(request.getContent())) {
+            sets.add("content = :content");
+            params.addValue("content", request.getContent());
+        }
+
+        if (!CollectionUtils.isEmpty(sets)) {
+            sets.add("last_modified_date = :lastModifiedDate");
+            params.addValue("lastModifiedDate", LocalDateTime.now());
+            String updateSql = "UPDATE board SET " + String.join(", ", sets) + " WHERE board_id = :boardId";
+            jdbcTemplate.update(updateSql, params);
+        }
+
+        return fetchBoardInfo(boardId);
     }
 
-    /**
-     * SQL 작성
-     * 1. boardId로 삭제 board 설정
-     * 2. username으로 validation
-     * 3. 삭제
-     * @param boardId
-     * @param username
-     */
     @Override
     public void deleteBoard(Long boardId, String username) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        // 작성자 확인
-        if (!board.getUser().getUsername().equals(username)) {
-            throw new RuntimeException("게시글을 삭제할 권한이 없습니다.");
+        Long writerId = fetchBoardOwnerId(boardId);
+        if (!writerId.equals(user.getId())) {
+            throw new IllegalArgumentException("게시글을 삭제할 권한이 없습니다.");
         }
 
-        boardRepository.delete(board);
+        String sql = "DELETE FROM board WHERE board_id = :boardId";
+        jdbcTemplate.update(sql, Map.of("boardId", boardId));
+    }
+
+    private BoardResponseDto.BoardInfo fetchBoardInfo(Long boardId) {
+        try {
+            return jdbcTemplate.queryForObject(BoardSqlSupport.BOARD_DETAIL_SQL, new MapSqlParameterSource("boardId", boardId), BoardSqlSupport.BOARD_INFO_MAPPER);
+        } catch (EmptyResultDataAccessException e) {
+            throw new IllegalArgumentException("게시글을 찾을 수 없습니다.");
+        }
+    }
+
+    private Long fetchBoardOwnerId(Long boardId) {
+        String sql = "SELECT user_id FROM board WHERE board_id = :boardId";
+        try {
+            return jdbcTemplate.queryForObject(sql, new MapSqlParameterSource("boardId", boardId), Long.class);
+        } catch (EmptyResultDataAccessException e) {
+            throw new IllegalArgumentException("게시글을 찾을 수 없습니다.");
+        }
     }
 }
