@@ -2,6 +2,7 @@ package com.kw.Ddareungi.domain.station.service;
 
 import com.kw.Ddareungi.domain.station.dto.ResponseStationList;
 import com.kw.Ddareungi.domain.station.dto.ResponseStationSpecific;
+import com.kw.Ddareungi.domain.station.repository.StationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class StationQueryServiceImpl implements StationQueryService {
 
-    private final StationQueryService stationQueryService;
+    private final StationRepository stationRepository;
 
     /**
      * SQL 입력

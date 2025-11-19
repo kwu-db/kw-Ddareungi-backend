@@ -1,8 +1,8 @@
 package com.kw.Ddareungi.global.security.filter;
 
-import com.my_medi.security.exception.CustomErrorSend;
-import com.my_medi.security.exception.JwtAuthenticationException;
-import com.my_medi.security.exception.SecurityErrorStatus;
+import com.kw.Ddareungi.global.security.exception.CustomErrorSend;
+import com.kw.Ddareungi.global.security.exception.JwtAuthenticationException;
+import com.kw.Ddareungi.global.security.exception.SecurityErrorStatus;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

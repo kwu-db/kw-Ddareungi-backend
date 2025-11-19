@@ -1,8 +1,9 @@
 package com.kw.Ddareungi.global.security.filter;
 
-import com.my_medi.security.exception.JwtAuthenticationException;
-import com.my_medi.security.exception.JwtAuthenticationExpiredException;
-import com.my_medi.security.jwt.service.TokenService;
+
+import com.kw.Ddareungi.global.security.exception.JwtAuthenticationException;
+import com.kw.Ddareungi.global.security.exception.JwtAuthenticationExpiredException;
+import com.kw.Ddareungi.global.security.jwt.service.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,8 +18,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-import static com.my_medi.common.consts.StaticVariable.HEALTH_CHECK_ENDPOINT;
-import static com.my_medi.common.consts.StaticVariable.REISSUE_ENDPOINT;
+import static com.kw.Ddareungi.global.util.StaticVariable.HEALTH_CHECK_ENDPOINT;
+import static com.kw.Ddareungi.global.util.StaticVariable.REISSUE_ENDPOINT;
+
 
 @Slf4j
 @RequiredArgsConstructor

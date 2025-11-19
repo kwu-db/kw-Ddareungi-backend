@@ -1,7 +1,6 @@
 package com.kw.Ddareungi.domain.station.entity;
 
 import com.kw.Ddareungi.domain.model.entity.BaseTimeEntity;
-import com.kw.Ddareungi.domain.report.entity.ReportStatus;
 import com.kw.Ddareungi.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
