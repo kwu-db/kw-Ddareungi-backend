@@ -2,7 +2,6 @@ package com.kw.Ddareungi.domain.board.service;
 
 import com.kw.Ddareungi.domain.board.dto.BoardRequestDto;
 import com.kw.Ddareungi.domain.board.dto.BoardResponseDto;
-import com.kw.Ddareungi.domain.board.entity.Board;
 import com.kw.Ddareungi.domain.user.entity.User;
 import com.kw.Ddareungi.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -100,6 +99,11 @@ public class BoardCommandServiceImpl implements BoardCommandService {
             throw new IllegalArgumentException("게시글을 삭제할 권한이 없습니다.");
         }
 
+        // 게시글 삭제 전에 관련 댓글 먼저 삭제 (외래키 제약조건 해결)
+        String deleteCommentsSql = "DELETE FROM comment WHERE board_id = :boardId";
+        jdbcTemplate.update(deleteCommentsSql, Map.of("boardId", boardId));
+
+        // 댓글 삭제 후 게시글 삭제
         String sql = "DELETE FROM board WHERE board_id = :boardId";
         jdbcTemplate.update(sql, Map.of("boardId", boardId));
     }

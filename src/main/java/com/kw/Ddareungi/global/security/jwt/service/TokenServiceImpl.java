@@ -129,13 +129,18 @@ public class TokenServiceImpl implements TokenService{
         }
 
         // 클레임에서 권한 정보 가져오기
-        Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("auth").toString().split(","))
+        String authString = claims.get("auth").toString();
+        Collection<? extends GrantedAuthority> authorities = Arrays.stream(authString.split(","))
+                .filter(auth -> auth != null && !auth.trim().isEmpty())
+                .map(String::trim)
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
 
         // UserDetails 객체를 만들어서 Authentication return
         // UserDetails: interface, User: UserDetails를 구현한 class
-        UserDetails principal = new org.springframework.security.core.userdetails.User(claims.getSubject(), "", authorities);
+        // claims.getSubject()는 이메일 주소이므로, 이를 username으로 사용
+        String username = claims.getSubject();
+        UserDetails principal = new org.springframework.security.core.userdetails.User(username, "", authorities);
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 

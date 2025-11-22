@@ -90,6 +90,12 @@ public class SecurityConfig {
                 "/api/v1/examples/global",
                 "/api/v1/tokens/**",
                 "/api/v1/term",
+                "/api/v1/stations",
+                "/api/v1/stations/**",
+                "/api/v1/passes",
+                "/api/v1/boards",
+                "/api/v1/boards/**",
+                "/api/v1/comments/boards/**",
                 "/actuator/**"
         };
     }

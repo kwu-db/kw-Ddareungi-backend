@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "댓글 API")
@@ -25,7 +26,8 @@ public class CommentApiController {
     @PostMapping("/boards/{boardId}")
     public ApiResponseDto<Long> commentAtBoard(@PathVariable Long boardId,
                                                @RequestBody RequestComment requestComment,
-                                               @AuthenticationPrincipal String username) {
+                                               @AuthenticationPrincipal UserDetails userDetails) {
+        String username = userDetails != null ? userDetails.getUsername() : null;
         return ApiResponseDto.onSuccess(commentCommandService.writeCommentAtBoard(boardId, username, requestComment));
     }
 

@@ -1,7 +1,6 @@
 package com.kw.Ddareungi.domain.pass.controller;
 
 import com.kw.Ddareungi.api.common.dto.ApiResponseDto;
-import com.kw.Ddareungi.domain.comment.dto.request.ResponseCommentList;
 import com.kw.Ddareungi.domain.pass.dto.ResponsePassList;
 import com.kw.Ddareungi.domain.pass.dto.ResponseUserPassList;
 import com.kw.Ddareungi.domain.pass.service.PassCommandService;
@@ -10,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "이용권 API")
@@ -30,14 +30,16 @@ public class PassApiController {
 
     @Operation(summary = "내가 구매한 이용권 조회")
     @GetMapping("/users")       //api endpoint 다시
-    public ApiResponseDto<ResponseUserPassList> getUserPassList(@AuthenticationPrincipal String username){
+    public ApiResponseDto<ResponseUserPassList> getUserPassList(@AuthenticationPrincipal UserDetails userDetails){
+        String username = userDetails != null ? userDetails.getUsername() : null;
         return ApiResponseDto.onSuccess(passQueryService.getUserPassList(username));
     }
 
     @Operation(summary = "이용권 구매하기")
     @PostMapping("/{passId}")
     public ApiResponseDto<Long> buyPass(@PathVariable Long passId,
-                                        @AuthenticationPrincipal String username){
+                                        @AuthenticationPrincipal UserDetails userDetails){
+        String username = userDetails != null ? userDetails.getUsername() : null;
         return ApiResponseDto.onSuccess(passCommandService.buyPass(passId, username));
     }
 }

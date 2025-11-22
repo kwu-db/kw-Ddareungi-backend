@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "[유저 페이지]대여 API")
@@ -22,20 +23,23 @@ public class RentalApiController {
     //TODO filter by status
     @Operation(summary = "대여현황 목록 조회하기")
     @GetMapping
-    public ApiResponseDto<ResponseRentalList> getRental(@AuthenticationPrincipal String username) {
+    public ApiResponseDto<ResponseRentalList> getRental(@AuthenticationPrincipal UserDetails userDetails) {
+        String username = userDetails != null ? userDetails.getUsername() : null;
         return ApiResponseDto.onSuccess(rentalQueryService.getCurrentRentalList(username));
     }
 
     @Operation(summary = "대여하기")
     @PostMapping("/stations/{stationId}")
     public ApiResponseDto<Long> rentalDdareungi(@PathVariable Long stationId,
-                                                @AuthenticationPrincipal String username) {
+                                                @AuthenticationPrincipal UserDetails userDetails) {
+        String username = userDetails != null ? userDetails.getUsername() : null;
         return ApiResponseDto.onSuccess(rentalCommandService.rentalAt(stationId, username));
     }
     @Operation(summary = "반납하기")
     @PatchMapping("/{rentalId}")
     public ApiResponseDto<Long> returnDdareungi(@PathVariable Long rentalId,
-                                                @AuthenticationPrincipal String username) {
+                                                @AuthenticationPrincipal UserDetails userDetails) {
+        String username = userDetails != null ? userDetails.getUsername() : null;
         return ApiResponseDto.onSuccess(rentalCommandService.returnDdareungi(rentalId, username));
     }
 

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "대여소 API")
@@ -25,7 +26,8 @@ public class StationApiController {
     @Operation(summary = "대여소 등록하기")
     @PostMapping
     public ApiResponseDto<Long> registerStation(@RequestBody RequestRegisterStation requestRegisterStation,
-                                                @AuthenticationPrincipal String username) {
+                                                @AuthenticationPrincipal UserDetails userDetails) {
+        String username = userDetails != null ? userDetails.getUsername() : null;
         return ApiResponseDto.onSuccess(stationCommandService.registerStation(username, requestRegisterStation));
     }
 
