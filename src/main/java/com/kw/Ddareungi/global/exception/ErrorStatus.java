@@ -24,11 +24,26 @@ public enum ErrorStatus implements BaseErrorCode{
     // 일반적인 요청 오류
     _BAD_REQUEST(BAD_REQUEST, 4000, "잘못된 요청입니다."),
     _UNAUTHORIZED(UNAUTHORIZED, 4001, "로그인이 필요합니다."),
-    _FORBIDDEN(FORBIDDEN, 4002, "금지된 요청입니다.");
+    _FORBIDDEN(FORBIDDEN, 4002, "금지된 요청입니다."),
 
-    // user (4050-4099)
-    // schedule (4100-4149)
-    // consultationRequest (4150-4199)
+	// user (4050-4099)
+	@ExplainError("사용자를 찾을 수 없습니다.")
+	USER_NOT_FOUND(NOT_FOUND, 4050, "사용자를 찾을 수 없습니다."),
+
+	// rental (4100-4149)
+	// consultationRequest (4150-4199)
+	// admin (4150-4199)
+	@ExplainError("관리자를 찾을 수 없습니다.")
+	ADMIN_NOT_FOUND(NOT_FOUND, 4150, "관리자를 찾을 수 없습니다."),
+	@ExplainError("이미 존재하는 관리자입니다.")
+	ADMIN_ALREADY_EXISTS(BAD_REQUEST, 4151, "이미 존재하는 관리자입니다."),
+
+	// station (4200-4249)
+	@ExplainError("대여소를 찾을 수 없습니다.")
+	STATION_NOT_FOUND(NOT_FOUND, 4200, "대여소를 찾을 수 없습니다."),
+	@ExplainError("이미 존재하는 대여소입니다.")
+	STATION_ALREADY_EXISTS(BAD_REQUEST, 4201, "이미 존재하는 대여소입니다.");
+
     // expertNotification (4200-4249)
     // userNotification (4250-4299)
     // proposal (4300-4349)

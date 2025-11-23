@@ -19,9 +19,15 @@ public class UserQueryServiceImpl implements UserQueryService {
                 .orElseThrow(() -> new IllegalArgumentException("로그인 정보와 일치하는 사용자가 없습니다."));
     }
 
-    @Override
-    public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-    }
+	@Override
+	public User getUserByUsername(String username) {
+		return userRepository.findByUsername(username)
+				.orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+	}
+
+	@Override
+	public User getUser(Long userId) {
+		return userRepository.findById(userId)
+				.orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+	}
 }

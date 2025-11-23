@@ -20,11 +20,12 @@ import java.util.List;
 @AllArgsConstructor
 public class User extends BaseTimeEntity implements UserDetails {
 
-    private Long id;
-    private String username;
-    private String name;
-    private String email;
-    private String password;
+	private Long id;
+	private String username;
+	private String name;
+	private String email;
+	private String password;
+	private Role role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
