@@ -4,7 +4,6 @@ package com.kw.Ddareungi.global.security.controller;
 import com.kw.Ddareungi.api.common.dto.ApiResponseDto;
 import com.kw.Ddareungi.global.security.dto.UserLoginRequestDto;
 import com.kw.Ddareungi.global.security.jwt.dto.JwtToken;
-import com.kw.Ddareungi.global.security.jwt.dto.MemberLoginRequestDto;
 import com.kw.Ddareungi.global.security.jwt.service.TokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

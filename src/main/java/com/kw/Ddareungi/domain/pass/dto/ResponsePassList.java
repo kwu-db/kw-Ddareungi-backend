@@ -1,6 +1,5 @@
 package com.kw.Ddareungi.domain.pass.dto;
 
-import com.kw.Ddareungi.domain.comment.dto.request.ResponseComment;
 import lombok.Builder;
 import lombok.Data;
 

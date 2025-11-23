@@ -48,9 +48,7 @@ public class BoardQueryServiceImpl implements BoardQueryService {
 
     @Override
     public Page<BoardResponseDto.BoardListInfo> searchBoards(String keyword, Pageable pageable) {
-        String condition = """
-                WHERE (b.title LIKE :keyword OR b.content LIKE :keyword)
-                """;
+        String condition = " WHERE (b.title LIKE :keyword OR b.content LIKE :keyword)";
         MapSqlParameterSource params = new MapSqlParameterSource("keyword", "%" + keyword + "%");
         return queryBoardPage(condition, params, pageable);
     }

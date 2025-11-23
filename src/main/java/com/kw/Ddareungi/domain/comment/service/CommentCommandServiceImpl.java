@@ -4,7 +4,6 @@ import com.kw.Ddareungi.domain.comment.dto.request.RequestComment;
 import com.kw.Ddareungi.domain.user.entity.User;
 import com.kw.Ddareungi.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
