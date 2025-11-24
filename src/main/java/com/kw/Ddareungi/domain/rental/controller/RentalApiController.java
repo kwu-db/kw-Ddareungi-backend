@@ -2,14 +2,18 @@ package com.kw.Ddareungi.domain.rental.controller;
 
 import com.kw.Ddareungi.api.common.dto.ApiResponseDto;
 import com.kw.Ddareungi.domain.rental.dto.ResponseRentalList;
+import com.kw.Ddareungi.domain.rental.dto.RentalResponseDto;
 import com.kw.Ddareungi.domain.rental.service.RentalCommandService;
 import com.kw.Ddareungi.domain.rental.service.RentalQueryService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "[유저 페이지]대여 API")
 @RestController
@@ -35,12 +39,19 @@ public class RentalApiController {
         String username = userDetails != null ? userDetails.getUsername() : null;
         return ApiResponseDto.onSuccess(rentalCommandService.rentalAt(stationId, username));
     }
-    @Operation(summary = "반납하기")
-    @PatchMapping("/{rentalId}")
-    public ApiResponseDto<Long> returnDdareungi(@PathVariable Long rentalId,
-                                                @AuthenticationPrincipal UserDetails userDetails) {
-        String username = userDetails != null ? userDetails.getUsername() : null;
-        return ApiResponseDto.onSuccess(rentalCommandService.returnDdareungi(rentalId, username));
-    }
+	@Operation(summary = "반납하기")
+	@PatchMapping("/{rentalId}")
+	public ApiResponseDto<Long> returnDdareungi(@PathVariable Long rentalId,
+												@AuthenticationPrincipal UserDetails userDetails) {
+		String username = userDetails != null ? userDetails.getUsername() : null;
+		return ApiResponseDto.onSuccess(rentalCommandService.returnDdareungi(rentalId, username));
+	}
+
+	@Operation(summary = "유저 자전거 대여 내역 조회", description = "특정 유저의 자전거 대여 내역을 조회합니다.")
+	@GetMapping("/users/{userId}")
+	public ApiResponseDto<List<RentalResponseDto>> getRentalsByUserId(
+			@Parameter(description = "유저 ID", required = true) @PathVariable Long userId) {
+		return ApiResponseDto.onSuccess(rentalQueryService.getRentalsByUserId(userId));
+	}
 
 }
