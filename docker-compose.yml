@@ -7,14 +7,14 @@ services:
     env_file: .env
     networks:
       - ddareungi-net
-#  ### REDIS ###
-#  redis_medi:
-#    image: redis
-#    container_name: my-medi-redis
-#    ports:
-#      - "6379:6379"
-#    networks:
-#      - ddareungi-net
+  ### REDIS ###
+  redis_ddareungi:
+    image: redis
+    container_name: ddareungi-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ddareungi-net
 
 
 networks:
