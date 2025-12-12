@@ -164,6 +164,7 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:5173",
                 "http://localhost:3000",
+                "https://ddareungi.netlify.app",
                 "https://local.tosel.co.kr",
                 "https://klasplus.netlify.app"
         ));
