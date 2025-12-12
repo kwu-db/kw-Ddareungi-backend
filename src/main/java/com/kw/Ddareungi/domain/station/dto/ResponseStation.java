@@ -15,7 +15,6 @@ public class ResponseStation {
     private Double longitude;
     private String address;
     private Integer capacity;
-    private Integer availableBikes;
     private LocalDate installationDate;
     private LocalTime closedDate;
 }

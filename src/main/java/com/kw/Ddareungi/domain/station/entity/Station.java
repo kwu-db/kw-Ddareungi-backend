@@ -23,7 +23,6 @@ public class Station extends BaseTimeEntity {
     private Double longitude;
     private String address;
     private int capacity;
-    private int availableBikes;
     private LocalDate installationDate;
     private LocalTime closedDate;
     private Long createdById;
