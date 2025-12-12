@@ -73,6 +73,7 @@ public class StationCommandServiceImpl implements StationCommandService {
 		}
 
 		// 선택적 업데이트
+		// availableBikes는 수동 업데이트 시 변경하지 않으므로 기존 값 유지
 		int updatedRows = stationRepository.updateStationSelectively(
 				stationId,
 				requestRegisterStation.getStationName(),
@@ -80,6 +81,7 @@ public class StationCommandServiceImpl implements StationCommandService {
 				requestRegisterStation.getLatitude(),
 				requestRegisterStation.getLongitude(),
 				requestRegisterStation.getCapacity(),
+				station.getAvailableBikes(), // 기존 자전거 수 유지
 				requestRegisterStation.getInstallationDate(),
 				requestRegisterStation.getClosedDate()
 		);
