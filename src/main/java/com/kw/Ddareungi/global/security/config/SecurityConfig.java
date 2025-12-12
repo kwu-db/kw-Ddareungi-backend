@@ -18,6 +18,12 @@ import org.springframework.security.config.annotation.web.configurers.HttpBasicC
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
 
 
 @RequiredArgsConstructor
@@ -41,7 +47,7 @@ public class SecurityConfig {
         return httpSecurity.build();
     }
 
-    private static void configureCorsAndSecurity(HttpSecurity httpSecurity) throws Exception {
+    private void configureCorsAndSecurity(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .headers(
                         httpSecurityHeadersConfigurer ->
@@ -54,7 +60,7 @@ public class SecurityConfig {
                 //.formLogin(Customizer.withDefaults())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(HttpBasicConfigurer::disable)
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(configurer -> configurer
                         .sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
@@ -150,5 +156,25 @@ public class SecurityConfig {
                 "/login/**",
                 "/auth/**"
         };
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "https://ddareungi.netlify.app",
+                "https://local.tosel.co.kr",
+                "https://klasplus.netlify.app"
+        ));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration);
+        return source;
     }
 }
