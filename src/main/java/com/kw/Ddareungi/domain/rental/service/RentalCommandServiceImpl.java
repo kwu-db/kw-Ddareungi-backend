@@ -28,10 +28,10 @@ public class RentalCommandServiceImpl implements RentalCommandService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        // station available_bikes check & decrement
+        // station capacity check & decrement
         ensureStationExists(stationId);
         int updated = jdbcTemplate.update(
-                "UPDATE station SET available_bikes = available_bikes - 1 WHERE station_id = :stationId AND available_bikes > 0",
+                "UPDATE station SET capacity = capacity - 1 WHERE station_id = :stationId AND capacity > 0",
                 new MapSqlParameterSource("stationId", stationId)
         );
         if (updated == 0) {
@@ -89,9 +89,9 @@ public class RentalCommandServiceImpl implements RentalCommandService {
                 """;
         jdbcTemplate.update(updateSql, params);
 
-        // increase station available_bikes back
+        // increase station capacity back
         jdbcTemplate.update(
-                "UPDATE station SET available_bikes = available_bikes + 1 WHERE station_id = :stationId",
+                "UPDATE station SET capacity = capacity + 1 WHERE station_id = :stationId",
                 new MapSqlParameterSource("stationId", record.startStationId)
         );
 
