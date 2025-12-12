@@ -41,6 +41,7 @@ public class StationQueryServiceImpl implements StationQueryService {
                     .longitude(rs.getDouble("longitude"))
                     .address(rs.getString("address"))
                     .capacity(rs.getInt("capacity"))
+                    .availableBikes(rs.getInt("available_bikes"))
                     .installationDate(installationDate)
                     .closedDate(closedTime)
                     .build();
@@ -50,7 +51,7 @@ public class StationQueryServiceImpl implements StationQueryService {
     @Override
     public ResponseStationList getAllStationList() {
         String sql = """
-                SELECT station_id, station_name, latitude, longitude, address, capacity, installation_date, closed_date
+                SELECT station_id, station_name, latitude, longitude, address, capacity, available_bikes, installation_date, closed_date
                   FROM station
                  ORDER BY station_name ASC
                 """;
@@ -64,7 +65,7 @@ public class StationQueryServiceImpl implements StationQueryService {
     @Override
     public ResponseStationSpecific getStationSpecific(Long stationId) {
         String sql = """
-                SELECT station_id, station_name, latitude, longitude, address, capacity, installation_date, closed_date
+                SELECT station_id, station_name, latitude, longitude, address, capacity, available_bikes, installation_date, closed_date
                   FROM station
                  WHERE station_id = :stationId
                 """;
