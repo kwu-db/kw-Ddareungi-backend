@@ -27,17 +27,12 @@ public class DdareungiApiClient {
     private String endpoint;
 
     public DdareungiApiResponseDto fetchStationData(int startIndex, int endIndex) {
-        // URL 형식: http://openapi.seoul.go.kr:8088/{인증키}/json/bikeList/{시작}/{종료}/
-        // 한 번에 최대 1,000건 초과 불가 (ERROR-336)
         if (endIndex - startIndex + 1 > 1000) {
             log.error("따릉이 API 호출 실패: 한 번에 최대 1,000건을 초과할 수 없습니다. (요청: {}건)", endIndex - startIndex + 1);
             return null;
         }
 
         String fullPath = String.format("/%s%s/%d/%d/", apiKey, endpoint, startIndex, endIndex);
-        String fullUrl = apiUrl + fullPath;
-
-        log.info("따릉이 API 호출: {} ({}건)", fullUrl, endIndex - startIndex + 1);
 
         try {
             WebClient webClient = webClientBuilder
@@ -60,23 +55,15 @@ public class DdareungiApiClient {
                 String code = response.getRentBikeStatus().getResult().getCode();
                 String message = response.getRentBikeStatus().getResult().getMessage();
                 
-                // INFO-000: 정상 처리
                 if ("INFO-000".equals(code)) {
-                    // 정상 처리
                 } else if ("INFO-200".equals(code)) {
-                    // 해당하는 데이터가 없음
                     log.warn("따릉이 API: 해당하는 데이터가 없습니다. ({} - {})", code, message);
                     return null;
                 } else {
-                    // 기타 오류 (ERROR-300, ERROR-301, ERROR-310, ERROR-331~336, ERROR-500, ERROR-600, ERROR-601 등)
                     log.error("따릉이 API 오류: {} - {}", code, message);
                     return null;
                 }
             }
-
-            log.info("따릉이 API 호출 성공: {}개 대여소 정보 수신", 
-                    response.getRentBikeStatus().getRow() != null ? 
-                    response.getRentBikeStatus().getRow().size() : 0);
 
             return response;
         } catch (WebClientResponseException e) {
@@ -89,29 +76,39 @@ public class DdareungiApiClient {
     }
 
     public DdareungiApiResponseDto fetchAllStationData() {
-        // 먼저 전체 개수를 확인하기 위해 1개만 가져옴
         DdareungiApiResponseDto firstResponse = fetchStationData(1, 1);
         
         if (firstResponse == null || 
-            firstResponse.getRentBikeStatus() == null ||
-            firstResponse.getRentBikeStatus().getListTotalCount() == null) {
-            log.warn("따릉이 API에서 전체 개수를 확인할 수 없습니다.");
+            firstResponse.getRentBikeStatus() == null) {
+            log.warn("따릉이 API에서 응답을 받을 수 없습니다.");
             return null;
         }
 
-        int totalCount = firstResponse.getRentBikeStatus().getListTotalCount();
-        log.info("따릉이 전체 대여소 개수: {}", totalCount);
-
-        // 1,000건 이하면 한 번에 가져오기
-        if (totalCount <= 1000) {
-            return fetchStationData(1, totalCount);
-        }
-
-        // 1,000건 초과 시 분할 호출 (예: 1/1,000, 1001/2,000)
-        log.info("대여소 개수가 1,000건을 초과하여 분할 호출을 진행합니다.");
+        Integer listTotalCount = firstResponse.getRentBikeStatus().getListTotalCount();
         
-        // 첫 번째 페이지 가져오기 (1~1000)
-        DdareungiApiResponseDto mergedResponse = fetchStationData(1, Math.min(1000, totalCount));
+        if (listTotalCount == null || listTotalCount == 0 || listTotalCount == 1) {
+            firstResponse = fetchStationData(1, 1000);
+            
+            if (firstResponse == null || 
+                firstResponse.getRentBikeStatus() == null) {
+                log.error("따릉이 API에서 응답을 받을 수 없습니다.");
+                return null;
+            }
+            
+            listTotalCount = firstResponse.getRentBikeStatus().getListTotalCount();
+        }
+        
+        if (listTotalCount != null && listTotalCount > 0 && listTotalCount < 1000) {
+            return fetchStationData(1, listTotalCount);
+        }
+        
+        DdareungiApiResponseDto mergedResponse;
+        if (firstResponse.getRentBikeStatus().getRow() != null && 
+            firstResponse.getRentBikeStatus().getRow().size() == 1) {
+            mergedResponse = fetchStationData(1, 1000);
+        } else {
+            mergedResponse = firstResponse;
+        }
         
         if (mergedResponse == null || 
             mergedResponse.getRentBikeStatus() == null ||
@@ -121,30 +118,51 @@ public class DdareungiApiClient {
         }
 
         int pageSize = 1000;
-        int currentStart = 1001; // 두 번째 페이지부터 시작
+        int currentStart = 1001;
+        boolean hasMoreData = true;
+        int totalFetched = mergedResponse.getRentBikeStatus().getRow().size();
+        Integer lastListTotalCount = mergedResponse.getRentBikeStatus().getListTotalCount();
         
-        while (currentStart <= totalCount) {
-            int currentEnd = Math.min(currentStart + pageSize - 1, totalCount);
-            log.info("따릉이 API 분할 호출: {} ~ {} (전체: {})", currentStart, currentEnd, totalCount);
-            
+        while (hasMoreData) {
+            int currentEnd = currentStart + pageSize - 1;
             DdareungiApiResponseDto pageResponse = fetchStationData(currentStart, currentEnd);
             
-            if (pageResponse != null && 
-                pageResponse.getRentBikeStatus() != null &&
-                pageResponse.getRentBikeStatus().getRow() != null) {
-                
-                // 기존 데이터에 추가
-                mergedResponse.getRentBikeStatus().getRow().addAll(
-                    pageResponse.getRentBikeStatus().getRow()
-                );
+            if (pageResponse == null) {
+                hasMoreData = false;
+                break;
             }
             
-            currentStart = currentEnd + 1;
+            if (pageResponse.getRentBikeStatus() == null ||
+                pageResponse.getRentBikeStatus().getRow() == null ||
+                pageResponse.getRentBikeStatus().getRow().isEmpty()) {
+                hasMoreData = false;
+                break;
+            }
+            
+            Integer currentListTotalCount = pageResponse.getRentBikeStatus().getListTotalCount();
+            if (currentListTotalCount != null && !currentListTotalCount.equals(lastListTotalCount)) {
+                lastListTotalCount = currentListTotalCount;
+            }
+            
+            int receivedCount = pageResponse.getRentBikeStatus().getRow().size();
+            mergedResponse.getRentBikeStatus().getRow().addAll(
+                pageResponse.getRentBikeStatus().getRow()
+            );
+            
+            totalFetched += receivedCount;
+            
+            if (receivedCount < pageSize) {
+                if (lastListTotalCount != null && totalFetched < lastListTotalCount) {
+                    currentStart = currentEnd + 1;
+                } else {
+                    hasMoreData = false;
+                }
+            } else {
+                currentStart = currentEnd + 1;
+            }
         }
-
-        log.info("따릉이 API 전체 데이터 수집 완료: 총 {}개 대여소", 
-                mergedResponse.getRentBikeStatus().getRow() != null ? 
-                mergedResponse.getRentBikeStatus().getRow().size() : 0);
+        
+        log.info("따릉이 API 동기화 완료: 총 {}개 대여소", totalFetched);
 
         return mergedResponse;
     }

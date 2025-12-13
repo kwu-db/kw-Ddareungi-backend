@@ -9,5 +9,5 @@ public interface StationCommandService {
 
 	void deleteStation(Long stationId, String username);
 
-	int syncDdareungiStations();
+	int syncDdareungiStations(String username);
 }

@@ -13,11 +13,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -25,10 +29,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StationCommandServiceImpl implements StationCommandService {
 
+	private final NamedParameterJdbcTemplate jdbcTemplate;
 	private final UserRepository userRepository;
 	private final StationRepository stationRepository;
 	private final DdareungiApiClient ddareungiApiClient;
-	private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
     public Long registerStation(String username, RequestRegisterStation requestRegisterStation) {
@@ -36,44 +40,52 @@ public class StationCommandServiceImpl implements StationCommandService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         LocalDateTime now = LocalDateTime.now();
-        Station station = Station.builder()
-                .stationName(requestRegisterStation.getStationName())
-                .latitude(requestRegisterStation.getLatitude())
-                .longitude(requestRegisterStation.getLongitude())
-                .address(requestRegisterStation.getAddress())
-                .capacity(requestRegisterStation.getCapacity())
-                .availableBikes(0) // 수동 등록 시 초기값 0
-                .installationDate(requestRegisterStation.getInstallationDate())
-                .closedDate(requestRegisterStation.getClosedDate())
-                .createdById(user.getId())
-                .modifiedById(user.getId())
-                .createdDate(now)
-                .lastModifiedDate(now)
-                .build();
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("stationName", requestRegisterStation.getStationName())
+                .addValue("latitude", requestRegisterStation.getLatitude())
+                .addValue("longitude", requestRegisterStation.getLongitude())
+                .addValue("address", requestRegisterStation.getAddress())
+                .addValue("capacity", requestRegisterStation.getCapacity())
+                .addValue("availableBikes", 0)
+                .addValue("installationDate", requestRegisterStation.getInstallationDate())
+                .addValue("closedDate", null)
+                .addValue("createdById", user.getId())
+                .addValue("modifiedById", user.getId())
+                .addValue("createdDate", now)
+                .addValue("lastModifiedDate", now);
 
-        return stationRepository.save(station);
+        String sql = """
+                INSERT INTO station (station_name, latitude, longitude, address, capacity, available_bikes,
+                                     installation_date, closed_date, created_by_id, modified_by_id,
+                                     created_date, last_modified_date)
+                VALUES (:stationName, :latitude, :longitude, :address, :capacity, :availableBikes,
+                        :installationDate, :closedDate, :createdById, :modifiedById,
+                        :createdDate, :lastModifiedDate)
+                """;
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(sql, params, keyHolder, new String[]{"station_id"});
+
+        return Optional.ofNullable(keyHolder.getKey())
+                .map(Number::longValue)
+				.orElseThrow(() -> new IllegalStateException("대여소 등록 중 오류가 발생했습니다."));
 	}
 
 	@Override
 	public void updateStation(Long stationId, RequestRegisterStation requestRegisterStation, String username) {
-		// 사용자 확인 (registerStation과 일관성 유지)
 		User user = userRepository.findByUsername(username)
 				.orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-		// 존재 확인
 		Station station = stationRepository.findById(stationId);
 		if (station == null) {
 			throw new GeneralException(ErrorStatus.STATION_NOT_FOUND);
 		}
 
-		// 이름이 변경되는 경우 중복 체크
 		if (!station.getStationName().equals(requestRegisterStation.getStationName())
 				&& stationRepository.existsByStationNameExcludingId(requestRegisterStation.getStationName(), stationId)) {
 			throw new GeneralException(ErrorStatus.STATION_ALREADY_EXISTS);
 		}
 
-		// 선택적 업데이트
-		// availableBikes는 수동 업데이트 시 변경하지 않으므로 기존 값 유지
 		int updatedRows = stationRepository.updateStationSelectively(
 				stationId,
 				requestRegisterStation.getStationName(),
@@ -81,9 +93,10 @@ public class StationCommandServiceImpl implements StationCommandService {
 				requestRegisterStation.getLatitude(),
 				requestRegisterStation.getLongitude(),
 				requestRegisterStation.getCapacity(),
-				station.getAvailableBikes(), // 기존 자전거 수 유지
+				station.getAvailableBikes(),
 				requestRegisterStation.getInstallationDate(),
-				requestRegisterStation.getClosedDate()
+				null,
+				user.getId()
 		);
 
 		if (updatedRows == 0) {
@@ -93,7 +106,6 @@ public class StationCommandServiceImpl implements StationCommandService {
 
 	@Override
 	public void deleteStation(Long stationId, String username) {
-		// 사용자 확인 (registerStation과 일관성 유지)
 		User user = userRepository.findByUsername(username)
 				.orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
@@ -105,8 +117,14 @@ public class StationCommandServiceImpl implements StationCommandService {
 	}
 
 	@Override
-	public int syncDdareungiStations() {
-		log.info("따릉이 API에서 대여소 데이터 동기화 시작");
+	public int syncDdareungiStations(String username) {
+		Long userId = null;
+		if (username != null) {
+			User user = userRepository.findByUsername(username).orElse(null);
+			if (user != null) {
+				userId = user.getId();
+			}
+		}
 
 		DdareungiApiResponseDto apiResponse = ddareungiApiClient.fetchAllStationData();
 		
@@ -133,7 +151,6 @@ public class StationCommandServiceImpl implements StationCommandService {
 					continue;
 				}
 
-				// 위도, 경도 파싱
 				Double latitude = parseDouble(stationInfo.getStationLatitude());
 				Double longitude = parseDouble(stationInfo.getStationLongitude());
 				
@@ -142,53 +159,42 @@ public class StationCommandServiceImpl implements StationCommandService {
 					continue;
 				}
 
-				// 수용 가능 대수 파싱 (총 수용 가능 대수)
 				Integer capacity = parseInt(stationInfo.getRackTotCnt());
 				if (capacity == null || capacity <= 0) {
-					capacity = 0; // 기본값
+					capacity = 0;
 				}
 
-				// 현재 주차된 자전거 수 파싱
 				Integer availableBikes = parseInt(stationInfo.getParkingBikeTotCnt());
 				if (availableBikes == null || availableBikes < 0) {
-					availableBikes = 0; // 기본값
+					availableBikes = 0;
 				}
 
-				// 주소는 API에서 제공하지 않으므로 빈 문자열로 설정
 				String address = "";
 
-				// 이미 존재하는 대여소인지 확인
 				boolean exists = stationRepository.existsByStationName(stationName);
 
 				if (exists) {
-					// 기존 대여소 업데이트
 					Long stationId = stationRepository.findIdByStationName(stationName);
 					
 					if (stationId != null) {
-						// 우리 서비스에서 해당 대여소에서 대여 중인 건수 확인
 						int activeRentals = countActiveRentalsByStationId(stationId);
-						
-						// API 데이터는 실제 따릉이의 자전거 수
-						// 우리 서비스에서 대여한 건은 우리 DB에만 기록되므로
-						// available_bikes = API의 parkingBikeTotCnt - 우리 서비스의 활성 대여 건수
 						int adjustedAvailableBikes = Math.max(0, availableBikes - activeRentals);
 						
-						// 선택적 업데이트 (위치, 수용량, 현재 자전거 수 업데이트)
 						stationRepository.updateStationSelectively(
 								stationId,
-								stationName, // 이름은 그대로
+								stationName,
 								address,
 								latitude,
 								longitude,
 								capacity,
-								adjustedAvailableBikes, // 우리 서비스 대여 건을 고려한 자전거 수
-								null, // installationDate
-								null  // closedDate
+								adjustedAvailableBikes,
+								null,
+								null,
+								userId
 						);
 						updatedCount++;
 					}
 				} else {
-					// 새 대여소 등록
 					Station newStation = Station.builder()
 							.stationName(stationName)
 							.latitude(latitude)
@@ -196,10 +202,10 @@ public class StationCommandServiceImpl implements StationCommandService {
 							.address(address)
 							.capacity(capacity)
 							.availableBikes(availableBikes)
-							.installationDate(null)
+							.installationDate(LocalDate.now())
 							.closedDate(null)
-							.createdById(null) // API 동기화는 시스템 작업
-							.modifiedById(null)
+							.createdById(userId)
+							.modifiedById(userId)
 					.createdDate(now)
 					.lastModifiedDate(now)
 					.build();
@@ -213,8 +219,7 @@ public class StationCommandServiceImpl implements StationCommandService {
 			}
 		}
 
-		log.info("따릉이 API 동기화 완료: 전체 {}개, 신규 {}개, 업데이트 {}개", 
-				syncedCount, createdCount, updatedCount);
+		log.info("따릉이 API 동기화 완료: 전체 {}개, 신규 {}개, 업데이트 {}개", syncedCount, createdCount, updatedCount);
 
 		return syncedCount;
 	}

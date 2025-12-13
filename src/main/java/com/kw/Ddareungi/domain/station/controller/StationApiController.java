@@ -66,8 +66,10 @@ public class StationApiController {
 
 	@Operation(summary = "따릉이 데이터 동기화", description = "따릉이 API에서 대여소 데이터를 가져와 저장합니다.")
 	@PostMapping("/sync")
-	public ApiResponseDto<Integer> syncDdareungiStations() {
-		int syncedCount = stationCommandService.syncDdareungiStations();
+	public ApiResponseDto<Integer> syncDdareungiStations(
+			@Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails) {
+		String username = userDetails != null ? userDetails.getUsername() : null;
+		int syncedCount = stationCommandService.syncDdareungiStations(username);
 		return ApiResponseDto.onSuccess(syncedCount);
 	}
 }

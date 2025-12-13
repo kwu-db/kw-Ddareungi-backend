@@ -75,4 +75,3 @@ public class DdareungiApiResponseDto {
         private String stationName; // 대여소이름
     }
 }
-

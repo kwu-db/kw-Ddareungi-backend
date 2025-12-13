@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS station (
     longitude           DECIMAL(10,7) NOT NULL,
     address             VARCHAR(255) NOT NULL,
     capacity            INT          NOT NULL,
-    available_bikes     INT          NOT NULL,
+    available_bikes     INT          NOT NULL DEFAULT 0,
     installation_date   DATE         NOT NULL,
     closed_date         TIME         NULL,
     created_by_id       BIGINT       NULL,
