@@ -3,6 +3,7 @@ package com.kw.Ddareungi.domain.user.repository;
 import com.kw.Ddareungi.domain.user.entity.Role;
 import com.kw.Ddareungi.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -17,6 +18,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class UserJdbcRepository implements UserRepository {
@@ -100,6 +102,7 @@ public class UserJdbcRepository implements UserRepository {
 				""";
 
 		LocalDateTime now = LocalDateTime.now();
+        log.info("is role exist? : {}", user.getRole() != null);
 		MapSqlParameterSource params = new MapSqlParameterSource()
 				.addValue("username", user.getUsername())
 				.addValue("name", user.getName())
@@ -108,6 +111,7 @@ public class UserJdbcRepository implements UserRepository {
 				.addValue("role", user.getRole() != null ? user.getRole().name() : Role.USER.name())
 				.addValue("createdDate", Optional.ofNullable(user.getCreatedDate()).orElse(now))
 				.addValue("lastModifiedDate", Optional.ofNullable(user.getLastModifiedDate()).orElse(now));
+        log.info("role = {}", params.getValues().get("role"));
 
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		jdbcTemplate.update(sql, params, keyHolder, new String[]{"user_id"});

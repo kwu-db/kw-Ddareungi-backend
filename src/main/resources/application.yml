@@ -30,6 +30,6 @@ app:
     secret: ${app.jwt.secret}
   ddareungi:
     api:
-      url: ${app.ddareungi.api.url:http://openapi.seoul.go.kr:8088}
-      key: ${app.ddareungi.api.key:}
-      endpoint: ${app.ddareungi.api.endpoint:/json/bikeList}
+      url: ${app.ddareungi.api.url}
+      key: ${app.ddareungi.api.key}
+      endpoint: /json/bikeList
