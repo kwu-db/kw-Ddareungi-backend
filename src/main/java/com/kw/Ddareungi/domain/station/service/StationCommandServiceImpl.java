@@ -48,7 +48,7 @@ public class StationCommandServiceImpl implements StationCommandService {
                 .addValue("capacity", requestRegisterStation.getCapacity())
                 .addValue("availableBikes", 0)
                 .addValue("installationDate", requestRegisterStation.getInstallationDate())
-                .addValue("closedDate", requestRegisterStation.getClosedDate())
+                .addValue("closedDate", null)
                 .addValue("createdById", user.getId())
                 .addValue("modifiedById", user.getId())
                 .addValue("createdDate", now)
@@ -95,7 +95,7 @@ public class StationCommandServiceImpl implements StationCommandService {
 				requestRegisterStation.getCapacity(),
 				station.getAvailableBikes(),
 				requestRegisterStation.getInstallationDate(),
-				requestRegisterStation.getClosedDate(),
+				null,
 				user.getId()
 		);
 

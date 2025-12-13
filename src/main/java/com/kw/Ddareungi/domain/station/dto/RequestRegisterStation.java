@@ -27,7 +27,7 @@ public class RequestRegisterStation {
     @JsonFormat(pattern = "yyyy-MM-dd", shape = JsonFormat.Shape.STRING)
     private LocalDate installationDate;
     
-    @JsonFormat(pattern = "HH:mm:ss", shape = JsonFormat.Shape.STRING)
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private LocalTime closedDate;
+//    @JsonFormat(pattern = "HH:mm:ss", shape = JsonFormat.Shape.STRING)
+//    @JsonInclude(JsonInclude.Include.NON_NULL)
+//    private LocalTime closedDate;
 }
