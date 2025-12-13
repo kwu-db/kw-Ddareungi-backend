@@ -2,7 +2,7 @@ package com.kw.Ddareungi.domain.station.controller;
 
 import com.kw.Ddareungi.api.common.dto.ApiResponseDto;
 import com.kw.Ddareungi.domain.station.dto.RequestRegisterStation;
-import com.kw.Ddareungi.domain.station.dto.ResponseStationList;
+import com.kw.Ddareungi.domain.station.dto.ResponseStation;
 import com.kw.Ddareungi.domain.station.dto.ResponseStationSpecific;
 import com.kw.Ddareungi.domain.station.service.StationCommandService;
 import com.kw.Ddareungi.domain.station.service.StationQueryService;
@@ -10,6 +10,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -32,10 +36,12 @@ public class StationApiController {
         return ApiResponseDto.onSuccess(stationCommandService.registerStation(username, requestRegisterStation));
     }
 
-    @Operation(summary = "대여소 목록 조회하기")
+    @Operation(summary = "대여소 목록 조회하기", description = "대여소 목록을 페이지네이션과 검색으로 조회합니다.")
     @GetMapping
-    public ApiResponseDto<ResponseStationList> getStationList() {
-        return ApiResponseDto.onSuccess(stationQueryService.getAllStationList());
+    public ApiResponseDto<Page<ResponseStation>> getStationList(
+            @Parameter(description = "대여소명 검색 키워드") @RequestParam(required = false) String search,
+            @PageableDefault(size = 10, sort = "stationName", direction = Sort.Direction.ASC) Pageable pageable) {
+        return ApiResponseDto.onSuccess(stationQueryService.getAllStationList(search, pageable));
     }
 	@Operation(summary = "대여소 상세 조회하기")
 	@GetMapping("/{stationId}")
