@@ -8,4 +8,6 @@ public interface StationCommandService {
 	void updateStation(Long stationId, RequestRegisterStation requestRegisterStation, String username);
 
 	void deleteStation(Long stationId, String username);
+
+	int syncDdareungiStations(String username);
 }

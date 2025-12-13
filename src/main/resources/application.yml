@@ -22,9 +22,14 @@ spring:
   ### redis ###
   data:
     redis:
-      host: ${spring.data.redis.host}
+      host: localhost
       port: 6379
 
 app:
   jwt:
     secret: ${app.jwt.secret}
+  ddareungi:
+    api:
+      url: ${app.ddareungi.api.url:http://openapi.seoul.go.kr:8088}
+      key: ${app.ddareungi.api.key:}
+      endpoint: ${app.ddareungi.api.endpoint:/json/bikeList}
