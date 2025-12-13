@@ -1,6 +1,7 @@
 package com.kw.Ddareungi.domain.rental.controller;
 
 import com.kw.Ddareungi.api.common.dto.ApiResponseDto;
+import com.kw.Ddareungi.domain.rental.dto.RankingListResponseDto;
 import com.kw.Ddareungi.domain.rental.dto.ResponseRentalList;
 import com.kw.Ddareungi.domain.rental.dto.RentalResponseDto;
 import com.kw.Ddareungi.domain.rental.service.RentalCommandService;
@@ -52,6 +53,22 @@ public class RentalApiController {
 	public ApiResponseDto<List<RentalResponseDto>> getRentalsByUserId(
 			@Parameter(description = "유저 ID", required = true) @PathVariable Long userId) {
 		return ApiResponseDto.onSuccess(rentalQueryService.getRentalsByUserId(userId));
+	}
+
+	@Operation(summary = "이용횟수 랭킹 조회", description = "자전거 대여 횟수 기준 랭킹을 조회합니다.")
+	@GetMapping("/rankings/count")
+	public ApiResponseDto<RankingListResponseDto> getRentalCountRanking(
+			@Parameter(description = "랭킹 조회 개수 (기본값: 10)", required = false)
+			@RequestParam(defaultValue = "10") int limit) {
+		return ApiResponseDto.onSuccess(rentalQueryService.getRentalCountRanking(limit));
+	}
+
+	@Operation(summary = "이용시간 랭킹 조회", description = "자전거 총 이용시간(분) 기준 랭킹을 조회합니다.")
+	@GetMapping("/rankings/time")
+	public ApiResponseDto<RankingListResponseDto> getRentalTimeRanking(
+			@Parameter(description = "랭킹 조회 개수 (기본값: 10)", required = false)
+			@RequestParam(defaultValue = "10") int limit) {
+		return ApiResponseDto.onSuccess(rentalQueryService.getRentalTimeRanking(limit));
 	}
 
 }
