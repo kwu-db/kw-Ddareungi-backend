@@ -31,7 +31,7 @@ public class RentalCommandServiceImpl implements RentalCommandService {
         // station capacity check & decrement
         ensureStationExists(stationId);
         int updated = jdbcTemplate.update(
-                "UPDATE station SET capacity = capacity - 1 WHERE station_id = :stationId AND capacity > 0",
+                "UPDATE station SET available_bikes = available_bikes - 1 WHERE station_id = :stationId AND available_bikes > 0",
                 new MapSqlParameterSource("stationId", stationId)
         );
         if (updated == 0) {
@@ -91,7 +91,7 @@ public class RentalCommandServiceImpl implements RentalCommandService {
 
         // increase station capacity back
         jdbcTemplate.update(
-                "UPDATE station SET capacity = capacity + 1 WHERE station_id = :stationId",
+                "UPDATE station SET available_bikes = available_bikes + 1 WHERE station_id = :stationId",
                 new MapSqlParameterSource("stationId", record.startStationId)
         );
 
