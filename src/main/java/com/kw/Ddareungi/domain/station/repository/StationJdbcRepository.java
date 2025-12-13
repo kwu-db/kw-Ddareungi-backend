@@ -79,7 +79,7 @@ public class StationJdbcRepository implements StationRepository {
 	@Override
 	public int updateStationSelectively(Long stationId, String stationName, String address,
 	                                    Double latitude, Double longitude, Integer capacity, Integer availableBikes,
-	                                    LocalDate installationDate, LocalTime closedDate) {
+	                                    LocalDate installationDate, LocalTime closedDate, Long modifiedById) {
 		StringBuilder sql = new StringBuilder("UPDATE station SET ");
 		MapSqlParameterSource params = new MapSqlParameterSource("stationId", stationId);
 		boolean hasUpdate = false;
@@ -136,8 +136,15 @@ public class StationJdbcRepository implements StationRepository {
 			return 0;
 		}
 
-		sql.append(", last_modified_date = :lastModifiedDate WHERE station_id = :stationId");
+		sql.append(", last_modified_date = :lastModifiedDate");
 		params.addValue("lastModifiedDate", LocalDateTime.now());
+		
+		if (modifiedById != null) {
+			sql.append(", modified_by_id = :modifiedById");
+			params.addValue("modifiedById", modifiedById);
+		}
+		
+		sql.append(" WHERE station_id = :stationId");
 
 		return jdbcTemplate.update(sql.toString(), params);
 	}
