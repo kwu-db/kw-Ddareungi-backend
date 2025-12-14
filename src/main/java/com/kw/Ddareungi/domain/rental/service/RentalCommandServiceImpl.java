@@ -1,5 +1,6 @@
 package com.kw.Ddareungi.domain.rental.service;
 
+import com.kw.Ddareungi.domain.pass.entity.UserPassStatus;
 import com.kw.Ddareungi.domain.user.entity.User;
 import com.kw.Ddareungi.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -27,6 +29,9 @@ public class RentalCommandServiceImpl implements RentalCommandService {
     public Long rentalAt(Long stationId, String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 이용권 검증: 활성화된 이용권이 있는지 확인
+        validateUserPass(user.getId());
 
         // station capacity check & decrement
         ensureStationExists(stationId);
@@ -126,6 +131,25 @@ public class RentalCommandServiceImpl implements RentalCommandService {
             );
         } catch (EmptyResultDataAccessException e) {
             throw new IllegalArgumentException("대여 정보를 찾을 수 없습니다.");
+        }
+    }
+
+    private void validateUserPass(Long userId) {
+        String sql = """
+                SELECT COUNT(*) > 0
+                  FROM user_pass
+                 WHERE user_id = :userId
+                   AND user_pass_status = :status
+                   AND expired_date >= :today
+                """;
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("userId", userId)
+                .addValue("status", UserPassStatus.ACTIVATE.name())
+                .addValue("today", LocalDate.now());
+
+        Boolean hasValidPass = jdbcTemplate.queryForObject(sql, params, Boolean.class);
+        if (hasValidPass == null || !hasValidPass) {
+            throw new IllegalStateException("대여를 위해서는 활성화된 이용권이 필요합니다.");
         }
     }
 
